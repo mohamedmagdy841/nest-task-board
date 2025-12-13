@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { hashPassword, verifyPassword } from './utils/hash-password.utils';
 import { JwtService } from '@nestjs/jwt';
@@ -15,7 +15,7 @@ export class AuthService {
     async register(dto: RegisterUserDto) {
         const existing = await this.prisma.user.findUnique({ where: { email: dto.email } })
         if (existing) {
-            throw new BadRequestException("User already exists");
+            throw new ConflictException("User already exists");
         }
 
         const hashed = await hashPassword(dto.password);
@@ -36,12 +36,12 @@ export class AuthService {
     async login(dto: LoginUserDto) {
         const user = await this.prisma.user.findUnique({ where: { email: dto.email }});
         if (!user) {
-            throw new BadRequestException("Invalid credentials");
+            throw new UnauthorizedException("Invalid credentials");
         }
 
         const isMatch = await verifyPassword(user.password, dto.password);
         if (!isMatch) {
-            throw new BadRequestException("Invalid credentials");
+            throw new UnauthorizedException("Invalid credentials");
         }
 
         const payload = { sub: user.id, email: user.email };

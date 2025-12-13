@@ -7,8 +7,9 @@ import { AuthModule } from './auth/auth.module';
 import appConfig from './config/app.config';
 import { envValidationSchema } from './config/env.validation';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { UsersModule } from './users/users.module';
+import { GlobalExceptionFilter } from './global-exception.filter';
 
 @Module({
   imports: [
@@ -30,6 +31,10 @@ import { UsersModule } from './users/users.module';
   ],
   controllers: [AppController],
   providers: [
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard
