@@ -10,6 +10,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { UsersModule } from './users/users.module';
 import { GlobalExceptionFilter } from './global-exception.filter';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { GlobalExceptionFilter } from './global-exception.filter';
     ]),
     PrismaModule,
     AuthModule,
-    UsersModule
+    UsersModule,
+    TasksModule
   ],
   controllers: [AppController],
   providers: [
