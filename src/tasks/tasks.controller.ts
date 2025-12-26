@@ -1,14 +1,17 @@
 import { 
   Controller, Get, Post, Body, Patch, 
   Param, Delete, UseGuards, Req, ParseIntPipe, 
-  HttpCode, HttpStatus 
+  HttpCode, HttpStatus, 
+  UseInterceptors,
+  UploadedFile,
+  UploadedFiles
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import type { Request } from 'express';
-
+import type { Request, Express } from 'express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 @UseGuards(AuthGuard)
 @Controller('tasks')
 export class TasksController {
@@ -52,5 +55,38 @@ export class TasksController {
     @Req() req: Request,
   ) {
     return this.tasksService.remove(id, req.user.sub, req.user.role);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post(':id/upload-image')
+  @UseInterceptors(FileInterceptor('image'))
+  uploadImage(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.tasksService.uploadImage(id, req.user.sub, req.user.role, file);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post(':id/upload-images')
+  @UseInterceptors(FilesInterceptor('images'))
+  uploadImages(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    return this.tasksService.uploadImages(id, req.user.sub, req.user.role, files);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post(':id/upload-pdf')
+  @UseInterceptors(FileInterceptor('pdf'))
+  uploadPdf(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.tasksService.uploadPdf(id, req.user.sub, req.user.role, file);
   }
 }

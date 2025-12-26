@@ -3,7 +3,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { safeUserSelect } from 'src/prisma/selects/user.select';
-
+import type { Express } from 'express';
 @Injectable()
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
@@ -112,10 +112,87 @@ export class TasksService {
     }
 
     if (userId !== task.createdById && role !== 'ADMIN') {
-      throw new ForbiddenException("You don't have permission for that.")
+      throw new ForbiddenException("You don't have permission for that.");
     }
     
     await this.prisma.task.delete({ where: {id}});
     return;
   }
+
+  async uploadImage(
+    id: number,
+    userId: number,
+    role: string,
+    file:  Express.Multer.File,
+  ) {
+    const task = await this.prisma.task.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        createdById: true
+      }
+    });
+
+    if (!task) {
+      throw new NotFoundException(`Task with id ${id} not found`);
+    }
+
+    if(userId !== task.createdById && role !== 'ADMIN') {
+      throw new ForbiddenException("You don't have permission for that.");
+    }
+
+    return file;
+  }
+
+  async uploadImages(
+    id: number,
+    userId: number,
+    role: string,
+    files:  Array<Express.Multer.File>,
+  ) {
+    const task = await this.prisma.task.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        createdById: true
+      }
+    });
+
+    if (!task) {
+      throw new NotFoundException(`Task with id ${id} not found`);
+    }
+
+    if(userId !== task.createdById && role !== 'ADMIN') {
+      throw new ForbiddenException("You don't have permission for that.");
+    }
+
+    return files;
+  }
+
+  async uploadPdf(
+    id: number,
+    userId: number,
+    role: string,
+    file:  Express.Multer.File,
+  ) {
+    const task = await this.prisma.task.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        createdById: true
+      }
+    });
+
+    if (!task) {
+      throw new NotFoundException(`Task with id ${id} not found`);
+    }
+
+    if(userId !== task.createdById && role !== 'ADMIN') {
+      throw new ForbiddenException("You don't have permission for that.");
+    }
+
+    return file;
+  }
 }
+
+
