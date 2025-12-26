@@ -45,10 +45,24 @@ model Task {
   createdBy    User       @relation("CreatedTasks", fields: [createdById], references: [id])
   assignedToId Int?
   assignedTo   User?      @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  taskFiles Task_Files[] @relation("TaskFiles")
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([createdById])
   @@index([assignedToId])
+}
+
+model Task_Files {
+  id Int @default(autoincrement()) @id
+  fileUrl String
+  fileType String
+  mimeType String
+  size Int
+
+  // Relations
+  taskId Int
+  task Task @relation("TaskFiles", fields: [taskId], references: [id])
+  createdAt DateTime @default(now())
 }

@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -125,6 +125,11 @@ export class TasksService {
     role: string,
     file:  Express.Multer.File,
   ) {
+
+    if (!file) {
+      throw new BadRequestException('No image uploaded');
+    }
+
     const task = await this.prisma.task.findUnique({
       where: { id },
       select: {
@@ -141,7 +146,15 @@ export class TasksService {
       throw new ForbiddenException("You don't have permission for that.");
     }
 
-    return file;
+    return this.prisma.task_Files.create({
+      data: {
+        fileUrl: file.path,
+        fileType: file.fieldname,
+        mimeType: file.mimetype,
+        size: file.size,
+        taskId: task.id,
+      }
+    });
   }
 
   async uploadImages(
@@ -150,6 +163,10 @@ export class TasksService {
     role: string,
     files:  Array<Express.Multer.File>,
   ) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No images uploaded');
+    }
+
     const task = await this.prisma.task.findUnique({
       where: { id },
       select: {
@@ -166,7 +183,21 @@ export class TasksService {
       throw new ForbiddenException("You don't have permission for that.");
     }
 
-    return files;
+    for (const file of files) {
+      if (!file.mimetype.startsWith('image/')) {
+        throw new BadRequestException('Invalid image type');
+      }
+    }
+
+    return this.prisma.task_Files.createMany({
+      data: files.map((file) => ({
+        fileUrl: file.path,
+        fileType: file.fieldname,
+        mimeType: file.mimetype,
+        size: file.size,
+        taskId: task.id,
+      }))
+    });
   }
 
   async uploadPdf(
@@ -175,6 +206,11 @@ export class TasksService {
     role: string,
     file:  Express.Multer.File,
   ) {
+
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
     const task = await this.prisma.task.findUnique({
       where: { id },
       select: {
@@ -191,7 +227,15 @@ export class TasksService {
       throw new ForbiddenException("You don't have permission for that.");
     }
 
-    return file;
+    return this.prisma.task_Files.create({
+      data: {
+        fileUrl: file.path,
+        fileType: file.fieldname,
+        mimeType: file.mimetype,
+        size: file.size,
+        taskId: task.id,
+      }
+    });
   }
 }
 

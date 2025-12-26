@@ -12,6 +12,13 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import type { Request, Express } from 'express';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { taskFileStorage } from './config/multer.storage';
+import { ImageFilePipe } from './pipes/image-file.pipe';
+import { MAX_IMAGE_COUNT } from './constants/file.constants';
+import { PdfFilePipe } from './pipes/pdf-file.pipe';
+import { imageFileFilter, pdfFileFilter } from './config/multer.filter';
+
+
 @UseGuards(AuthGuard)
 @Controller('tasks')
 export class TasksController {
@@ -59,18 +66,24 @@ export class TasksController {
 
   @HttpCode(HttpStatus.OK)
   @Post(':id/upload-image')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('image', {
+    storage: taskFileStorage,
+    fileFilter: imageFileFilter,
+  }))
   uploadImage(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(ImageFilePipe) file: Express.Multer.File,
   ) {
     return this.tasksService.uploadImage(id, req.user.sub, req.user.role, file);
   }
 
   @HttpCode(HttpStatus.OK)
   @Post(':id/upload-images')
-  @UseInterceptors(FilesInterceptor('images'))
+  @UseInterceptors(FilesInterceptor('images', MAX_IMAGE_COUNT, {
+    storage: taskFileStorage,
+    fileFilter: imageFileFilter,
+  }))
   uploadImages(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
@@ -81,11 +94,14 @@ export class TasksController {
 
   @HttpCode(HttpStatus.OK)
   @Post(':id/upload-pdf')
-  @UseInterceptors(FileInterceptor('pdf'))
+  @UseInterceptors(FileInterceptor('pdf', {
+    storage: taskFileStorage,
+    fileFilter: pdfFileFilter,
+  }))
   uploadPdf(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(PdfFilePipe) file: Express.Multer.File,
   ) {
     return this.tasksService.uploadPdf(id, req.user.sub, req.user.role, file);
   }
