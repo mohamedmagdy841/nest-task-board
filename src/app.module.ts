@@ -11,6 +11,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { UsersModule } from './users/users.module';
 import { GlobalExceptionFilter } from './global-exception.filter';
 import { TasksModule } from './tasks/tasks.module';
+import { WebsocketsModule } from './websockets/websockets.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { TasksModule } from './tasks/tasks.module';
     PrismaModule,
     AuthModule,
     UsersModule,
-    TasksModule
+    TasksModule,
+    WebsocketsModule
   ],
   controllers: [AppController],
   providers: [
