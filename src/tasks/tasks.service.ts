@@ -4,12 +4,17 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { safeUserSelect } from 'src/prisma/selects/user.select';
 import type { Express } from 'express';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FILE_UPLOADED, TASK_CREATED, TASK_DELETED, TASK_UPDATED } from './events/task.events';
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(createTaskDto: CreateTaskDto, userId: number) {
-    return this.prisma.task.create({
+    const task = await this.prisma.task.create({
       data: {
         title: createTaskDto.title,
         description: createTaskDto.description,
@@ -17,6 +22,10 @@ export class TasksService {
         assignedToId: createTaskDto.assignedToId ?? null,
       }
     });
+
+    this.eventEmitter.emit(TASK_CREATED, task);
+
+    return task;
   }
 
   async findAll() {
@@ -91,6 +100,8 @@ export class TasksService {
       }
     });
 
+    this.eventEmitter.emit(TASK_UPDATED, newTask);
+
     return newTask;
   }
 
@@ -116,6 +127,9 @@ export class TasksService {
     }
     
     await this.prisma.task.delete({ where: {id}});
+
+    this.eventEmitter.emit(TASK_DELETED, task);
+
     return;
   }
 
@@ -146,7 +160,7 @@ export class TasksService {
       throw new ForbiddenException("You don't have permission for that.");
     }
 
-    return this.prisma.task_Files.create({
+    const fileRecord = await this.prisma.task_Files.create({
       data: {
         fileUrl: file.path,
         fileType: file.fieldname,
@@ -155,6 +169,10 @@ export class TasksService {
         taskId: task.id,
       }
     });
+
+    this.eventEmitter.emit(FILE_UPLOADED, fileRecord);
+
+    return fileRecord;
   }
 
   async uploadImages(
@@ -227,7 +245,7 @@ export class TasksService {
       throw new ForbiddenException("You don't have permission for that.");
     }
 
-    return this.prisma.task_Files.create({
+    const fileRecord = await this.prisma.task_Files.create({
       data: {
         fileUrl: file.path,
         fileType: file.fieldname,
@@ -236,6 +254,10 @@ export class TasksService {
         taskId: task.id,
       }
     });
+
+    this.eventEmitter.emit(FILE_UPLOADED, fileRecord);
+
+    return fileRecord;
   }
 }
 

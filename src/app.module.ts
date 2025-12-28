@@ -12,6 +12,7 @@ import { UsersModule } from './users/users.module';
 import { GlobalExceptionFilter } from './global-exception.filter';
 import { TasksModule } from './tasks/tasks.module';
 import { WebsocketsModule } from './websockets/websockets.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { WebsocketsModule } from './websockets/websockets.module';
         limit: 60,
       }
     ]),
+    EventEmitterModule.forRoot(),
     PrismaModule,
     AuthModule,
     UsersModule,

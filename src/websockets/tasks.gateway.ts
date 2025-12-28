@@ -10,6 +10,8 @@ import { EventDto } from "./dto/event.dto";
 import { WsAuthGuard } from "src/auth/guards/ws-auth.guard";
 import { JwtService } from "@nestjs/jwt";
 import { wsJwtMiddleware } from "src/auth/middlewares/ws-jwt.middleware";
+import { OnEvent } from "@nestjs/event-emitter";
+import { FILE_UPLOADED, TASK_CREATED, TASK_DELETED, TASK_UPDATED } from "src/tasks/events/task.events";
 
 @UseGuards(WsAuthGuard)
 @WebSocketGateway(8001, {
@@ -50,24 +52,44 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
     }
 
-    @UsePipes(
-        new ValidationPipe({
-            whitelist: true,
-            transform: true,
-            exceptionFactory: (errors) =>
-                new WsException({
-                    message: 'Validation failed',
-                    errors,
-                })
-        })
-    )
-    @SubscribeMessage('events')
-    handleEvent(
-        @ConnectedSocket() client: Socket, 
-        @MessageBody() message: EventDto
-    ) {
-        // client.emit('reply', 'This is a reply'); // send back to single client
-        this.server.emit('reply', message); // broadcast the message to all subscribers
+    // @UsePipes(
+    //     new ValidationPipe({
+    //         whitelist: true,
+    //         transform: true,
+    //         exceptionFactory: (errors) =>
+    //             new WsException({
+    //                 message: 'Validation failed',
+    //                 errors,
+    //             })
+    //     })
+    // )
+    // @SubscribeMessage('events')
+    // handleEvent(
+    //     @ConnectedSocket() client: Socket, 
+    //     @MessageBody() message: EventDto
+    // ) {
+    //     // client.emit('reply', 'This is a reply'); // send back to single client
+    //     this.server.emit('reply', message); // broadcast the message to all subscribers
+    // }
+
+    
+    @OnEvent(TASK_CREATED)
+    handleTaskCreated(task: any) {
+        this.server.emit(TASK_CREATED, task);
     }
 
+    @OnEvent(TASK_UPDATED)
+    handleTaskUpdated(task: any) {
+        this.server.emit(TASK_UPDATED, task);
+    }
+
+    @OnEvent(TASK_DELETED)
+    handleTaskDeleted(task: any) {
+        this.server.emit(TASK_DELETED, task);
+    }
+
+    @OnEvent(FILE_UPLOADED)
+    handleFileUploaded(file: any) {
+        this.server.emit(FILE_UPLOADED, file);
+    }
 }
