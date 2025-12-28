@@ -13,6 +13,8 @@ import { GlobalExceptionFilter } from './global-exception.filter';
 import { TasksModule } from './tasks/tasks.module';
 import { WebsocketsModule } from './websockets/websockets.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -28,6 +30,16 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
         limit: 60,
       }
     ]),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads', // public URL prefix
+      serveStaticOptions: {
+        setHeaders: (res) => {
+          res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+          res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        },
+      },
+    }),
     EventEmitterModule.forRoot(),
     PrismaModule,
     AuthModule,

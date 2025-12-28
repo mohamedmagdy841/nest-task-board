@@ -14,7 +14,9 @@ async function bootstrap() {
     contentSecurityPolicy: false,
   }));
 
-  app.enableCors({ origin: '*' });
+  app.enableCors({
+    origin: '*',
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

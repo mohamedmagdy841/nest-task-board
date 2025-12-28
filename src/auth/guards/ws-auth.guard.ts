@@ -17,15 +17,15 @@ export class WsAuthGuard implements CanActivate {
     // =========================
     // OPTION 1 (Postman / headers)
     // =========================
-    const authHeader = client.handshake.headers?.authorization as string | undefined;
-    const token = authHeader?.startsWith('Bearer ')
-      ? authHeader.split(' ')[1]
-      : undefined;
+    // const authHeader = client.handshake.headers?.authorization as string | undefined;
+    // const token = authHeader?.startsWith('Bearer ')
+    //   ? authHeader.split(' ')[1]
+    //   : undefined;
 
     // =========================
     // OPTION 2 (Browser / Socket.IO auth)
     // =========================
-    // const token = client.handshake.auth?.token;
+    const token = client.handshake.auth?.token;
 
     if (!token) {
       throw new WsException('Missing authentication token');

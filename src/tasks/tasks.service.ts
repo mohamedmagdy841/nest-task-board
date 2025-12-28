@@ -21,6 +21,15 @@ export class TasksService {
         status: createTaskDto.status,
         createdById: userId,
         assignedToId: createTaskDto.assignedToId ?? null,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        createdAt: true,
+        status: true,
+        createdBy: { select: safeUserSelect },
+        assignedTo: { select: safeUserSelect },
       }
     });
 
@@ -36,8 +45,22 @@ export class TasksService {
         title: true,
         description: true,
         createdAt: true,
+        status: true,
         createdBy: { select: safeUserSelect },
         assignedTo: { select: safeUserSelect },
+        files: {
+          select: {
+            id: true,
+            fileUrl: true,
+            fileType: true,
+            mimeType: true,
+            size: true,
+            createdAt: true,
+          }
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       }
     });
   }
@@ -50,8 +73,19 @@ export class TasksService {
         title: true,
         description: true,
         createdAt: true,
+        status: true,
         createdBy: { select: safeUserSelect },
         assignedTo: { select: safeUserSelect },
+        files: {
+          select: {
+            id: true,
+            fileUrl: true,
+            fileType: true,
+            mimeType: true,
+            size: true,
+            createdAt: true,
+          }
+        },
       }
     });
 
@@ -90,12 +124,14 @@ export class TasksService {
         title: updateTaskDto.title,
         description: updateTaskDto.description,
         assignedToId: updateTaskDto.assignedToId,
+        status: updateTaskDto.status,
       },
       select: {
         id: true,
         title: true,
         description: true,
         createdAt: true,
+        status: true,
         createdBy: { select: safeUserSelect },
         assignedTo: { select: safeUserSelect },
       }
@@ -163,7 +199,7 @@ export class TasksService {
 
     const fileRecord = await this.prisma.task_Files.create({
       data: {
-        fileUrl: file.path,
+        fileUrl: `/uploads/tasks/${file.filename}`,
         fileType: file.fieldname,
         mimeType: file.mimetype,
         size: file.size,
@@ -210,7 +246,7 @@ export class TasksService {
 
     return this.prisma.task_Files.createMany({
       data: files.map((file) => ({
-        fileUrl: file.path,
+        fileUrl: `/uploads/tasks/${file.filename}`,
         fileType: file.fieldname,
         mimeType: file.mimetype,
         size: file.size,
@@ -248,7 +284,7 @@ export class TasksService {
 
     const fileRecord = await this.prisma.task_Files.create({
       data: {
-        fileUrl: file.path,
+        fileUrl: `/uploads/tasks/${file.filename}`,
         fileType: file.fieldname,
         mimeType: file.mimetype,
         size: file.size,
