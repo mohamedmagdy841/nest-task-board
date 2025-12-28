@@ -18,6 +18,7 @@ export class TasksService {
       data: {
         title: createTaskDto.title,
         description: createTaskDto.description,
+        status: createTaskDto.status,
         createdById: userId,
         assignedToId: createTaskDto.assignedToId ?? null,
       }

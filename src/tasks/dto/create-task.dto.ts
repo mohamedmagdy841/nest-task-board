@@ -5,8 +5,10 @@ import {
   IsInt,
   Min,
   MaxLength,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { TaskStatus } from '../enums/task-status.enum';
 
 export class CreateTaskDto {
     @IsString()
@@ -24,4 +26,8 @@ export class CreateTaskDto {
     @IsOptional()
     @Type(() => Number)
     assignedToId?: number;
+
+    @IsEnum(TaskStatus)
+    @IsOptional()
+    status?: TaskStatus;
 }
