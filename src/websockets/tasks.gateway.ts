@@ -11,11 +11,12 @@ import { WsAuthGuard } from "src/auth/guards/ws-auth.guard";
 import { JwtService } from "@nestjs/jwt";
 import { wsJwtMiddleware } from "src/auth/middlewares/ws-jwt.middleware";
 import { OnEvent } from "@nestjs/event-emitter";
-import { ALL_FILES_DELETED_FOR_TASK, FILE_DELETED, FILE_UPLOADED, TASK_CREATED, TASK_DELETED, TASK_UPDATED } from "src/tasks/events/task.events";
+import { FILE_UPLOADED, TASK_CREATED, TASK_DELETED, TASK_UPDATED } from "src/tasks/events/task.events";
 
 @UseGuards(WsAuthGuard)
 @WebSocketGateway(8001, {
     namespace: 'tasks-events',
+    transports: ['websocket'],
     cors: {
         origin: '*',
     },
@@ -32,24 +33,23 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // on connect lifecycle hooks
     handleConnection(@ConnectedSocket() client: Socket) {
-        console.log("New user connected:", client.id);
+        const user = client.data.user;
+        const userId = user?.id || user?.sub;
+        if (!userId) {
+            client.disconnect();
+            return;
+        }
 
-        // broadcast to all but the sender
-        client.broadcast.emit("reply", {
-            message: `New User Joined the chat: ${client.id}` 
-        });
+        client.join(`user:${userId}`);
 
-        // this.server.emit("reply", {
-        //     message: `New User Joined the chat: ${client.id}`
-        // });
+        console.log(`User ${userId} connected with socket ${client.id}`);
     }
 
     // on disconnect lifecycle hooks
     handleDisconnect(@ConnectedSocket() client: Socket) {
-        console.log("user disconnected:", client.id);
-        this.server.emit("reply", {
-            message: `User Left the chat: ${client.id}`
-        });
+        const user = client.data.user;
+        const userId = user?.id || user?.sub;
+        console.log(`User ${userId} disconnected (${client.id})`);
     }
 
     // @UsePipes(
@@ -74,32 +74,30 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     
     @OnEvent(TASK_CREATED)
-    handleTaskCreated(task: any) {
-        this.server.emit(TASK_CREATED, task);
+    handleTaskCreated(payload: { task: any; actorId: number }) {
+        this.server
+        .except(`user:${payload.actorId}`)
+        .emit(TASK_CREATED, payload.task);
     }
 
     @OnEvent(TASK_UPDATED)
-    handleTaskUpdated(task: any) {
-        this.server.emit(TASK_UPDATED, task);
+    handleTaskUpdated(payload: { task: any; actorId: number }) {        
+        this.server
+        .except(`user:${payload.actorId}`)
+        .emit(TASK_UPDATED, payload.task);
     }
 
     @OnEvent(TASK_DELETED)
-    handleTaskDeleted(task: any) {
-        this.server.emit(TASK_DELETED, task);
+    handleTaskDeleted(payload: { task: any; actorId: number }) {
+        this.server
+        .except(`user:${payload.actorId}`)
+        .emit(TASK_DELETED, payload.task);
     }
 
     @OnEvent(FILE_UPLOADED)
-    handleFileUploaded(file: any) {
-        this.server.emit(FILE_UPLOADED, file);
-    }
-
-    @OnEvent(FILE_DELETED)
-    handleFileDeleted(file: any) {
-        this.server.emit(FILE_DELETED, file);
-    }
-
-    @OnEvent(ALL_FILES_DELETED_FOR_TASK)
-    handleAllFilesDeletedForTask(info: any) {
-        this.server.emit(ALL_FILES_DELETED_FOR_TASK, info);
+    handleFileUploaded(payload: { fileRecord: any; actorId: number }) {
+        this.server
+        .except(`user:${payload.actorId}`)
+        .emit(FILE_UPLOADED, payload.fileRecord);
     }
 }

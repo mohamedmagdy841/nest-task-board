@@ -32,7 +32,7 @@ export class TasksService {
       }
     });
 
-    this.eventEmitter.emit(TASK_CREATED, task);
+    this.eventEmitter.emit(TASK_CREATED, {task, actorId: userId});
 
     return task;
   }
@@ -136,7 +136,7 @@ export class TasksService {
       }
     });
 
-    this.eventEmitter.emit(TASK_UPDATED, newTask);
+    this.eventEmitter.emit(TASK_UPDATED, {task: newTask, actorId: userId});
 
     return newTask;
   }
@@ -164,7 +164,7 @@ export class TasksService {
     
     await this.prisma.task.delete({ where: {id}});
 
-    this.eventEmitter.emit(TASK_DELETED, task);
+    this.eventEmitter.emit(TASK_DELETED, {task, actorId: userId});
 
     return;
   }

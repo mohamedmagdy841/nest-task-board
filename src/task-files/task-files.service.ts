@@ -135,7 +135,10 @@ export class TaskFilesService {
             }
         });
 
-        this.eventEmitter.emit(FILE_UPLOADED, fileRecord);
+        this.eventEmitter.emit(FILE_UPLOADED, {
+            fileRecord,
+            actorId: userId,
+        });
 
         return fileRecord;
     }
