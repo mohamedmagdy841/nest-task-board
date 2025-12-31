@@ -11,7 +11,7 @@ import { WsAuthGuard } from "src/auth/guards/ws-auth.guard";
 import { JwtService } from "@nestjs/jwt";
 import { wsJwtMiddleware } from "src/auth/middlewares/ws-jwt.middleware";
 import { OnEvent } from "@nestjs/event-emitter";
-import { FILE_UPLOADED, TASK_CREATED, TASK_DELETED, TASK_UPDATED } from "src/tasks/events/task.events";
+import { ALL_FILES_DELETED_FOR_TASK, FILE_DELETED, FILE_UPLOADED, TASK_CREATED, TASK_DELETED, TASK_UPDATED } from "src/tasks/events/task.events";
 
 @UseGuards(WsAuthGuard)
 @WebSocketGateway(8001, {
@@ -91,5 +91,15 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @OnEvent(FILE_UPLOADED)
     handleFileUploaded(file: any) {
         this.server.emit(FILE_UPLOADED, file);
+    }
+
+    @OnEvent(FILE_DELETED)
+    handleFileDeleted(file: any) {
+        this.server.emit(FILE_DELETED, file);
+    }
+
+    @OnEvent(ALL_FILES_DELETED_FOR_TASK)
+    handleAllFilesDeletedForTask(info: any) {
+        this.server.emit(ALL_FILES_DELETED_FOR_TASK, info);
     }
 }

@@ -3,9 +3,8 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { safeUserSelect } from 'src/prisma/selects/user.select';
-import type { Express } from 'express';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { FILE_UPLOADED, TASK_CREATED, TASK_DELETED, TASK_UPDATED } from './events/task.events';
+import { TASK_CREATED, TASK_DELETED, TASK_UPDATED } from './events/task.events';
 @Injectable()
 export class TasksService {
   constructor(
@@ -168,133 +167,6 @@ export class TasksService {
     this.eventEmitter.emit(TASK_DELETED, task);
 
     return;
-  }
-
-  async uploadImage(
-    id: number,
-    userId: number,
-    role: string,
-    file:  Express.Multer.File,
-  ) {
-
-    if (!file) {
-      throw new BadRequestException('No image uploaded');
-    }
-
-    const task = await this.prisma.task.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        createdById: true
-      }
-    });
-
-    if (!task) {
-      throw new NotFoundException(`Task with id ${id} not found`);
-    }
-
-    if(userId !== task.createdById && role !== 'ADMIN') {
-      throw new ForbiddenException("You don't have permission for that.");
-    }
-
-    const fileRecord = await this.prisma.task_Files.create({
-      data: {
-        fileUrl: `/uploads/tasks/${file.filename}`,
-        fileType: file.fieldname,
-        mimeType: file.mimetype,
-        size: file.size,
-        taskId: task.id,
-      }
-    });
-
-    this.eventEmitter.emit(FILE_UPLOADED, fileRecord);
-
-    return fileRecord;
-  }
-
-  async uploadImages(
-    id: number,
-    userId: number,
-    role: string,
-    files:  Array<Express.Multer.File>,
-  ) {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('No images uploaded');
-    }
-
-    const task = await this.prisma.task.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        createdById: true
-      }
-    });
-
-    if (!task) {
-      throw new NotFoundException(`Task with id ${id} not found`);
-    }
-
-    if(userId !== task.createdById && role !== 'ADMIN') {
-      throw new ForbiddenException("You don't have permission for that.");
-    }
-
-    for (const file of files) {
-      if (!file.mimetype.startsWith('image/')) {
-        throw new BadRequestException('Invalid image type');
-      }
-    }
-
-    return this.prisma.task_Files.createMany({
-      data: files.map((file) => ({
-        fileUrl: `/uploads/tasks/${file.filename}`,
-        fileType: file.fieldname,
-        mimeType: file.mimetype,
-        size: file.size,
-        taskId: task.id,
-      }))
-    });
-  }
-
-  async uploadPdf(
-    id: number,
-    userId: number,
-    role: string,
-    file:  Express.Multer.File,
-  ) {
-
-    if (!file) {
-      throw new BadRequestException('No file uploaded');
-    }
-
-    const task = await this.prisma.task.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        createdById: true
-      }
-    });
-
-    if (!task) {
-      throw new NotFoundException(`Task with id ${id} not found`);
-    }
-
-    if(userId !== task.createdById && role !== 'ADMIN') {
-      throw new ForbiddenException("You don't have permission for that.");
-    }
-
-    const fileRecord = await this.prisma.task_Files.create({
-      data: {
-        fileUrl: `/uploads/tasks/${file.filename}`,
-        fileType: file.fieldname,
-        mimeType: file.mimetype,
-        size: file.size,
-        taskId: task.id,
-      }
-    });
-
-    this.eventEmitter.emit(FILE_UPLOADED, fileRecord);
-
-    return fileRecord;
   }
 }
 

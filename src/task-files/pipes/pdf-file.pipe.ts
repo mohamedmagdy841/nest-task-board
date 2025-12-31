@@ -3,7 +3,7 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
 } from '@nestjs/common';
-import { MAX_PDF_SIZE } from '../constants/file.constants';
+import { MAX_PDF_SIZE } from '../../task-files/constants/file.constants';
 
 export const PdfFilePipe = new ParseFilePipe({
   validators: [

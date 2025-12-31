@@ -15,6 +15,7 @@ import { WebsocketsModule } from './websockets/websockets.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { TaskFilesModule } from './task-files/task-files.module';
 
 @Module({
   imports: [
@@ -45,7 +46,8 @@ import { join } from 'path';
     AuthModule,
     UsersModule,
     TasksModule,
-    WebsocketsModule
+    WebsocketsModule,
+    TaskFilesModule
   ],
   controllers: [AppController],
   providers: [

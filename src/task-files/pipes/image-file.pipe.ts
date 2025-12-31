@@ -1,5 +1,5 @@
 import { MaxFileSizeValidator, ParseFilePipe } from "@nestjs/common";
-import { MAX_IMAGE_SIZE } from "../constants/file.constants";
+import { MAX_IMAGE_SIZE } from "../../task-files/constants/file.constants";
 
 export const ImageFilePipe = new ParseFilePipe({
     validators: [
