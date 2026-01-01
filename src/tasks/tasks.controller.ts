@@ -2,12 +2,14 @@ import {
   Controller, Get, Post, Body, Patch, 
   Param, Delete, UseGuards, Req, ParseIntPipe, 
   HttpCode, HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import type { Request } from 'express';
+import { FindTasksQueryDto } from './dto/find-tasks.query';
 
 
 @UseGuards(AuthGuard)
@@ -26,8 +28,8 @@ export class TasksController {
 
   @HttpCode(HttpStatus.OK)
   @Get()
-  findAll() {
-    return this.tasksService.findAll();
+  findAll(@Query() query: FindTasksQueryDto) {
+    return this.tasksService.findAll(query);
   }
 
   @HttpCode(HttpStatus.OK)

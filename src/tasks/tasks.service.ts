@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { safeUserSelect } from 'src/prisma/selects/user.select';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TASK_CREATED, TASK_DELETED, TASK_UPDATED } from './events/task.events';
+import { FindTasksQueryDto } from './dto/find-tasks.query';
 @Injectable()
 export class TasksService {
   constructor(
@@ -46,24 +47,82 @@ export class TasksService {
     return task;
   }
 
-  async findAll() {
-    return this.prisma.task.findMany({
-      include: {
-        createdBy: { select: safeUserSelect },
-        assignees: {
-          include: {
-            user: { select: safeUserSelect },
-          },
+  async findAll(query: FindTasksQueryDto) {
+    const {
+      page = 1,
+      limit = 20,
+      createdBy,
+      assignedTo,
+      search,
+      status,
+      sortBy = 'createdAt',
+      order = 'desc',
+    } = query;
+
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+
+    // Filter: created by
+    if (createdBy) {
+      where.createdById = createdBy;
+    }
+
+    // Filter: assigned to
+    if (assignedTo) {
+      where.assignees = {
+        some: {
+          userId: assignedTo,
         },
-        comments: {
-          include: {
-            createdBy: { select: safeUserSelect },
-          },
+      };
+    }
+
+    // Search by title
+    if (search) {
+      where.title = {
+        contains: search,
+      };
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.task.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          [sortBy]: order,
         },
-        files: true,
+        include: {
+          createdBy: { select: safeUserSelect },
+          assignees: {
+            include: {
+              user: { select: safeUserSelect },
+            },
+          },
+          comments: {
+            include: {
+              createdBy: { select: safeUserSelect },
+            },
+          },
+          files: true,
+        },
+      }),
+      this.prisma.task.count({ where }),
+    ]);
+
+    return {
+      data: items,
+      meta: {
+        total,
+        page,
+        limit,
+        hasNextPage: skip + items.length < total,
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    };
   }
 
   async findOne(id: number) {

@@ -6,7 +6,6 @@ import {
     WsException
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { EventDto } from "./dto/event.dto";
 import { WsAuthGuard } from "src/auth/guards/ws-auth.guard";
 import { JwtService } from "@nestjs/jwt";
 import { wsJwtMiddleware } from "src/auth/middlewares/ws-jwt.middleware";
@@ -33,7 +32,6 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.server.use(wsJwtMiddleware(this.jwtService));
     }
 
-    // on connect lifecycle hooks
     handleConnection(@ConnectedSocket() client: Socket) {
         const user = client.data.user;
         const userId = user?.id || user?.sub;
@@ -61,7 +59,6 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
         console.log(`User ${userId} connected with socket ${client.id}`);
     }
 
-    // on disconnect lifecycle hooks
     handleDisconnect(@ConnectedSocket() client: Socket) {
         const user = client.data.user;
         const userId = user?.id || user?.sub;
