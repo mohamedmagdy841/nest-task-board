@@ -10,82 +10,79 @@ export class TasksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async create(createTaskDto: CreateTaskDto, userId: number) {
+    const { assigneeIds, ...taskData } = createTaskDto;
+
     const task = await this.prisma.task.create({
       data: {
-        title: createTaskDto.title,
-        description: createTaskDto.description,
-        status: createTaskDto.status,
+        ...taskData,
         createdById: userId,
-        assignedToId: createTaskDto.assignedToId ?? null,
+        assignees: assigneeIds?.length
+          ? {
+            createMany: {
+              data: assigneeIds.map((userId) => ({
+                userId,
+              })),
+            },
+          }
+          : undefined,
       },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        createdAt: true,
-        status: true,
+      include: {
         createdBy: { select: safeUserSelect },
-        assignedTo: { select: safeUserSelect },
-      }
+        assignees: {
+          include: {
+            user: { select: safeUserSelect },
+          },
+        },
+        comments: true,
+        files: true,
+      },
     });
 
-    this.eventEmitter.emit(TASK_CREATED, {task, actorId: userId});
+    this.eventEmitter.emit(TASK_CREATED, { task, actorId: userId });
 
     return task;
   }
 
   async findAll() {
     return this.prisma.task.findMany({
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        createdAt: true,
-        status: true,
+      include: {
         createdBy: { select: safeUserSelect },
-        assignedTo: { select: safeUserSelect },
-        files: {
-          select: {
-            id: true,
-            fileUrl: true,
-            fileType: true,
-            mimeType: true,
-            size: true,
-            createdAt: true,
-          }
+        assignees: {
+          include: {
+            user: { select: safeUserSelect },
+          },
         },
+        comments: {
+          include: {
+            createdBy: { select: safeUserSelect },
+          },
+        },
+        files: true,
       },
-      orderBy: {
-        createdAt: 'desc',
-      }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async findOne(id: number) {
     const task = await this.prisma.task.findUnique({
-      where: {id},
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        createdAt: true,
-        status: true,
+      where: { id },
+      include: {
         createdBy: { select: safeUserSelect },
-        assignedTo: { select: safeUserSelect },
-        files: {
-          select: {
-            id: true,
-            fileUrl: true,
-            fileType: true,
-            mimeType: true,
-            size: true,
-            createdAt: true,
-          }
+        assignees: {
+          include: {
+            user: { select: safeUserSelect },
+          },
         },
-      }
+        comments: {
+          include: {
+            createdBy: { select: safeUserSelect },
+          },
+        },
+        files: true,
+      },
     });
 
     if (!task) {
@@ -96,7 +93,7 @@ export class TasksService {
   }
 
   async update(
-    id: number, 
+    id: number,
     updateTaskDto: UpdateTaskDto,
     userId: number,
     role: string,
@@ -117,32 +114,38 @@ export class TasksService {
       throw new ForbiddenException("You don't have permission for that.")
     }
 
-    const newTask = await this.prisma.task.update({
-      where: {id},
+    const { assigneeIds, ...taskData } = updateTaskDto;
+
+    const updatedTask = await this.prisma.task.update({
+      where: { id },
       data: {
-        title: updateTaskDto.title,
-        description: updateTaskDto.description,
-        assignedToId: updateTaskDto.assignedToId,
-        status: updateTaskDto.status,
+        ...taskData,
+        assignees: assigneeIds
+          ? {
+            deleteMany: {},
+            createMany: {
+              data: assigneeIds.map((userId) => ({ userId })),
+            },
+          }
+          : undefined,
       },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        createdAt: true,
-        status: true,
+      include: {
         createdBy: { select: safeUserSelect },
-        assignedTo: { select: safeUserSelect },
-      }
+        assignees: {
+          include: {
+            user: { select: safeUserSelect },
+          },
+        },
+      },
     });
 
-    this.eventEmitter.emit(TASK_UPDATED, {task: newTask, actorId: userId});
+    this.eventEmitter.emit(TASK_UPDATED, { task: updatedTask, actorId: userId });
 
-    return newTask;
+    return updatedTask;
   }
 
   async remove(
-    id: number, 
+    id: number,
     userId: number,
     role: string,
   ) {
@@ -161,10 +164,10 @@ export class TasksService {
     if (userId !== task.createdById && role !== 'ADMIN') {
       throw new ForbiddenException("You don't have permission for that.");
     }
-    
-    await this.prisma.task.delete({ where: {id}});
 
-    this.eventEmitter.emit(TASK_DELETED, {task, actorId: userId});
+    await this.prisma.task.delete({ where: { id } });
+
+    this.eventEmitter.emit(TASK_DELETED, { task, actorId: userId });
 
     return;
   }

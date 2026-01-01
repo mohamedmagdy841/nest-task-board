@@ -1,8 +1,8 @@
 import { UseFilters, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
-import { 
-    ConnectedSocket, MessageBody, OnGatewayConnection, 
-    OnGatewayDisconnect, SubscribeMessage, 
-    WebSocketGateway, WebSocketServer, 
+import {
+    ConnectedSocket, MessageBody, OnGatewayConnection,
+    OnGatewayDisconnect, SubscribeMessage,
+    WebSocketGateway, WebSocketServer,
     WsException
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
@@ -25,7 +25,9 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     server: Server;
 
-    constructor(private jwtService: JwtService) {}
+    private onlineUsers = new Map<number, Set<string>>();
+
+    constructor(private jwtService: JwtService) { }
 
     afterInit() {
         this.server.use(wsJwtMiddleware(this.jwtService));
@@ -42,6 +44,20 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         client.join(`user:${userId}`);
 
+        const sockets = this.onlineUsers.get(userId) ?? new Set<string>();
+        const isFirestConnection = sockets.size === 0;
+        sockets.add(client.id);
+        this.onlineUsers.set(userId, sockets);
+
+        client.emit(
+            'presence.list',
+            Array.from(this.onlineUsers.keys()),
+        );
+
+        if (isFirestConnection) {
+            client.broadcast.emit('user.online', userId);
+        }
+
         console.log(`User ${userId} connected with socket ${client.id}`);
     }
 
@@ -49,55 +65,51 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
     handleDisconnect(@ConnectedSocket() client: Socket) {
         const user = client.data.user;
         const userId = user?.id || user?.sub;
-        console.log(`User ${userId} disconnected (${client.id})`);
+
+        if (!userId) return;
+
+        const sockets = this.onlineUsers.get(userId);
+        if (!sockets) return;
+
+        sockets.delete(client.id);
+
+        if (sockets.size === 0) {
+            this.onlineUsers.delete(userId);
+            client.broadcast.emit('user.offline', userId);
+            console.log(`User ${userId} went offline`);
+        } else {
+            this.onlineUsers.set(userId, sockets);
+        }
+
+        console.log(`Socket ${client.id} disconnected for user ${userId}`);
     }
 
-    // @UsePipes(
-    //     new ValidationPipe({
-    //         whitelist: true,
-    //         transform: true,
-    //         exceptionFactory: (errors) =>
-    //             new WsException({
-    //                 message: 'Validation failed',
-    //                 errors,
-    //             })
-    //     })
-    // )
-    // @SubscribeMessage('events')
-    // handleEvent(
-    //     @ConnectedSocket() client: Socket, 
-    //     @MessageBody() message: EventDto
-    // ) {
-    //     // client.emit('reply', 'This is a reply'); // send back to single client
-    //     this.server.emit('reply', message); // broadcast the message to all subscribers
-    // }
 
-    
     @OnEvent(TASK_CREATED)
     handleTaskCreated(payload: { task: any; actorId: number }) {
         this.server
-        .except(`user:${payload.actorId}`)
-        .emit(TASK_CREATED, payload.task);
+            .except(`user:${payload.actorId}`)
+            .emit(TASK_CREATED, payload.task);
     }
 
     @OnEvent(TASK_UPDATED)
-    handleTaskUpdated(payload: { task: any; actorId: number }) {        
+    handleTaskUpdated(payload: { task: any; actorId: number }) {
         this.server
-        .except(`user:${payload.actorId}`)
-        .emit(TASK_UPDATED, payload.task);
+            .except(`user:${payload.actorId}`)
+            .emit(TASK_UPDATED, payload.task);
     }
 
     @OnEvent(TASK_DELETED)
     handleTaskDeleted(payload: { task: any; actorId: number }) {
         this.server
-        .except(`user:${payload.actorId}`)
-        .emit(TASK_DELETED, payload.task);
+            .except(`user:${payload.actorId}`)
+            .emit(TASK_DELETED, payload.task);
     }
 
     @OnEvent(FILE_UPLOADED)
     handleFileUploaded(payload: { fileRecord: any; actorId: number }) {
         this.server
-        .except(`user:${payload.actorId}`)
-        .emit(FILE_UPLOADED, payload.fileRecord);
+            .except(`user:${payload.actorId}`)
+            .emit(FILE_UPLOADED, payload.fileRecord);
     }
 }

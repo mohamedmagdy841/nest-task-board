@@ -13,4 +13,10 @@ export class UsersController {
         return this.usersService.me(req.user.sub);
     }
 
+    @UseGuards(AuthGuard)
+    @HttpCode(HttpStatus.OK)
+    @Get()
+    async findAll() {
+        return this.usersService.findAll();
+    }
 }

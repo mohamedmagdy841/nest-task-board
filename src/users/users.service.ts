@@ -19,4 +19,12 @@ export class UsersService {
 
         return user;
     }
+
+    async findAll() {
+        return this.prisma.user.findMany({
+            omit: {
+                password: true
+            }
+        });
+    }
 }

@@ -22,7 +22,8 @@ model User {
 
   // Relations
   createdTasks  Task[]   @relation("CreatedTasks")
-  assignedTasks Task[]   @relation("AssignedTasks")
+  assignedTasks TaskAssignment[]
+  comments Comment[] @relation("UserComments")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -34,25 +35,60 @@ enum TaskStatus {
   done
 }
 
+enum TaskPriority {
+  low
+  medium
+  high
+}
+
+model Comment {
+  id Int @default(autoincrement()) @id
+  content String
+
+  // Relations
+  taskId Int
+  task Task @relation("TaskComments", fields: [taskId], references: [id])
+  createdById Int
+  createdBy User @relation("UserComments", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
 model Task {
   id    Int     @default(autoincrement()) @id
   title String
   description String?
+
   status TaskStatus @default(todo)
-  
+  priority TaskPriority @default(medium)
+  dueDate DateTime?
+  completedAt DateTime?
+
   // Relations
   createdById Int
   createdBy    User       @relation("CreatedTasks", fields: [createdById], references: [id])
-  assignedToId Int?
-  assignedTo   User?      @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  assignees   TaskAssignment[]
   files Task_Files[] @relation("TaskFiles")
+  comments Comment[] @relation("TaskComments")
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([createdById])
-  @@index([assignedToId])
 }
+
+model TaskAssignment {
+  taskId Int
+  userId Int
+
+  task Task @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  assignedAt DateTime @default(now())
+
+  @@id([taskId, userId])
+}
+
 
 model Task_Files {
   id Int @default(autoincrement()) @id
