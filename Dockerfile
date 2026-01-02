@@ -11,6 +11,7 @@ RUN npm ci
 
 # Copy Prisma + source
 COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
 COPY src ./src
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
@@ -37,6 +38,7 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/generated ./generated
 COPY prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 EXPOSE 8000
 CMD ["node", "dist/src/main.js"]
