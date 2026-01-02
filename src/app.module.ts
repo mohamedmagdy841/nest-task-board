@@ -36,6 +36,8 @@ import { TaskCommentsModule } from './task-comments/task-comments.module';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads', // public URL prefix
       serveStaticOptions: {
+        index: false,
+        fallthrough: false,
         setHeaders: (res) => {
           res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:5173');
           res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
