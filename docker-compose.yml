@@ -9,10 +9,12 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    volumes:
+      - ./uploads:/app/uploads
     networks:
       - custom-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://tasks-board-backend:8000/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://tasks-board-backend:8000/api/v1/health"]
       interval: 30s
       timeout: 5s
       retries: 3
