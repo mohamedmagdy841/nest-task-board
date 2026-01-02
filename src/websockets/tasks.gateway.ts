@@ -12,12 +12,12 @@ import { wsJwtMiddleware } from "src/auth/middlewares/ws-jwt.middleware";
 import { OnEvent } from "@nestjs/event-emitter";
 import { FILE_UPLOADED, TASK_CREATED, TASK_DELETED, TASK_UPDATED } from "src/tasks/events/task.events";
 
-@UseGuards(WsAuthGuard)
 @WebSocketGateway(8001, {
     namespace: 'tasks-events',
     transports: ['websocket'],
     cors: {
-        origin: '*',
+        origin: 'http://localhost:3000',
+        credentials: true,
     },
 })
 export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {

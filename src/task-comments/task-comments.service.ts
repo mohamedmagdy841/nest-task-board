@@ -43,7 +43,7 @@ export class TaskCommentsService {
     taskId: number,
     query: FindCommentsQueryDto,
   ) {
-    const { page = 1, limit = 20 } = query;
+    const { page = 1, limit = 5 } = query;
     const skip = (page - 1) * limit;
 
     const taskExists = await this.prisma.task.findUnique({
