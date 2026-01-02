@@ -16,6 +16,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { TaskFilesModule } from './task-files/task-files.module';
+import { TaskCommentsModule } from './task-comments/task-comments.module';
 
 @Module({
   imports: [
@@ -47,7 +48,8 @@ import { TaskFilesModule } from './task-files/task-files.module';
     UsersModule,
     TasksModule,
     WebsocketsModule,
-    TaskFilesModule
+    TaskFilesModule,
+    TaskCommentsModule
   ],
   controllers: [AppController],
   providers: [
