@@ -1,4 +1,3 @@
-import { UseFilters, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import {
     ConnectedSocket, MessageBody, OnGatewayConnection,
     OnGatewayDisconnect, SubscribeMessage,
@@ -6,17 +5,16 @@ import {
     WsException
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { WsAuthGuard } from "src/auth/guards/ws-auth.guard";
 import { JwtService } from "@nestjs/jwt";
 import { wsJwtMiddleware } from "src/auth/middlewares/ws-jwt.middleware";
 import { OnEvent } from "@nestjs/event-emitter";
 import { FILE_UPLOADED, TASK_CREATED, TASK_DELETED, TASK_UPDATED } from "src/tasks/events/task.events";
 
-@WebSocketGateway(8001, {
+@WebSocketGateway({
     namespace: 'tasks-events',
     transports: ['websocket'],
     cors: {
-        origin: 'http://localhost:3000',
+        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
         credentials: true,
     },
 })
