@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,8 +15,11 @@ async function bootstrap() {
     contentSecurityPolicy: false,
   }));
 
+  app.use(cookieParser());
+
   app.enableCors({
     origin: '*',
+    credentials: true,
   });
 
   app.useGlobalPipes(
@@ -27,6 +31,6 @@ async function bootstrap() {
   );
 
   await app.listen(port);
-  console.log(`🚀 Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 }
 bootstrap();
