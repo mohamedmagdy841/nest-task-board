@@ -3,14 +3,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsInt,
-  Min,
   MaxLength,
   IsEnum,
-  IsDate,
   IsArray,
-  IsIn,
+  IsDateString,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { TaskStatus } from '../enums/task-status.enum';
 import { TaskPriority } from '../enums/priority.enum';
 
@@ -33,14 +30,12 @@ export class CreateTaskDto {
     @IsOptional()
     priority?: TaskPriority;
 
-    @IsDate()
-    @Type(() => Date)
     @IsOptional()
+    @IsDateString()
     dueDate?: Date;
 
-    @IsDate()
-    @Type(() => Date)
     @IsOptional()
+    @IsDateString()
     completedAt?: Date;
 
     @IsArray()

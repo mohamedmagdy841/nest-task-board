@@ -10,6 +10,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import type { Request } from 'express';
 import { FindTasksQueryDto } from './dto/find-tasks.query';
+import { Throttle } from '@nestjs/throttler';
 
 
 @UseGuards(AuthGuard)
@@ -17,6 +18,7 @@ import { FindTasksQueryDto } from './dto/find-tasks.query';
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.CREATED)
   @Post()
   create(
