@@ -6,7 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import appConfig from './config/app.config';
 import { envValidationSchema } from './config/env.validation';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { UsersModule } from './users/users.module';
 import { GlobalExceptionFilter } from './global-exception.filter';
@@ -17,6 +17,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { TaskFilesModule } from './task-files/task-files.module';
 import { TaskCommentsModule } from './task-comments/task-comments.module';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 
 @Module({
   imports: [
@@ -25,16 +26,13 @@ import { TaskCommentsModule } from './task-comments/task-comments.module';
       load: [appConfig],
       validationSchema: envValidationSchema,
     }),
-    ThrottlerModule.forRoot([
-      {
-        name: 'default',
-        ttl: 60000,
-        limit: 60,
-      }
-    ]),
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: 'default', limit: 60, ttl: seconds(60) }],
+      storage: new ThrottlerStorageRedisService(process.env.REDIS_URL || 'redis://localhost:6379'),
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
-      serveRoot: '/uploads', // public URL prefix
+      serveRoot: '/uploads',
       serveStaticOptions: {
         index: false,
         fallthrough: false,
