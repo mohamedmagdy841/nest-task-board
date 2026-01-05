@@ -3,10 +3,11 @@ import { MailService } from './mail.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { SendEmailDto } from './dto/send-email.dto';
 import type { Request } from 'express';
+import { QueueService } from 'src/queue/queue.service';
 
 @Controller()
 export class MailController {
-    constructor(private readonly mailService: MailService) {}
+    constructor(private readonly queueService: QueueService) {}
     
     @UseGuards(AuthGuard)
     @Post('send-email')
@@ -16,7 +17,7 @@ export class MailController {
     ) {
         const user = request['user'];
 
-        await this.mailService.sendMail({
+        await this.queueService.add('email', 'send-email', {
             to: dto.to,
             from: user.email,
             subject: dto.subject,

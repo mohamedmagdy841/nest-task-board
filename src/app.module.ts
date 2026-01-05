@@ -19,6 +19,8 @@ import { TaskFilesModule } from './task-files/task-files.module';
 import { TaskCommentsModule } from './task-comments/task-comments.module';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { MailModule } from './mail/mail.module';
+import { BullModule } from '@nestjs/bullmq';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
@@ -43,6 +45,12 @@ import { MailModule } from './mail/mail.module';
         },
       },
     }),
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+      }
+    }),
     EventEmitterModule.forRoot(),
     PrismaModule,
     AuthModule,
@@ -51,7 +59,8 @@ import { MailModule } from './mail/mail.module';
     WebsocketsModule,
     TaskFilesModule,
     TaskCommentsModule,
-    MailModule
+    MailModule,
+    QueueModule
   ],
   controllers: [AppController],
   providers: [

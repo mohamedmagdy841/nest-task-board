@@ -5,6 +5,8 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { QueueModule } from 'src/queue/queue.module';
+import { EmailProcessor } from './email.processor';
 
 @Module({
   imports: [
@@ -30,8 +32,10 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
         },
       }),
     }),
+    QueueModule,
   ],
-  providers: [MailService],
-  controllers: [MailController]
+  providers: [MailService, EmailProcessor],
+  controllers: [MailController],
+  exports: [MailService],
 })
 export class MailModule { }
