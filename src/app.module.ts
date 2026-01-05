@@ -18,6 +18,7 @@ import { join } from 'path';
 import { TaskFilesModule } from './task-files/task-files.module';
 import { TaskCommentsModule } from './task-comments/task-comments.module';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -49,7 +50,8 @@ import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis'
     TasksModule,
     WebsocketsModule,
     TaskFilesModule,
-    TaskCommentsModule
+    TaskCommentsModule,
+    MailModule
   ],
   controllers: [AppController],
   providers: [
