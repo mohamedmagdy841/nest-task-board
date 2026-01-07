@@ -37,6 +37,7 @@ The application is **containerized with Docker** and deployed on a **VPS**, runn
 
   * WebSocket adapter.
   * Rate limiting.
+  * BullMQ queues for background job processing.
   * Shared in-memory coordination.
 
 ---
@@ -49,6 +50,7 @@ The application is **containerized with Docker** and deployed on a **VPS**, runn
 * Task assignments (many-to-many).
 * Task comments.
 * File uploads (images & PDFs).
+* Background job processing using BullMQ (Redis-backed).
 * Real-time updates using WebSockets (Socket.IO).
 * Redis adapter for scalable WebSocket communication.
 * Redis-backed rate limiting.
@@ -120,6 +122,7 @@ Important architectural rule:
 | Socket.IO  | Real-time communication           |
 | Docker     | Containerization                  |
 | Nginx      | Reverse proxy & SSL termination   |
+| BullMQ     | Background job processing         |
 | Nodemailer | Email delivery                    |
 
 
