@@ -7,7 +7,7 @@ export class MailService {
     constructor(private readonly mailerService: MailerService) {}
 
     async sendMail (params: {
-        to: string;
+        to: string | string[];
         from: string;
         subject: string;
         message: string;
