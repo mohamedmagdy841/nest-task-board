@@ -21,6 +21,7 @@ import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis'
 import { MailModule } from './mail/mail.module';
 import { BullModule } from '@nestjs/bullmq';
 import { QueueModule } from './queue/queue.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { QueueModule } from './queue/queue.module';
       }
     }),
     EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     UsersModule,

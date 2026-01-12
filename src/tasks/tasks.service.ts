@@ -6,11 +6,16 @@ import { safeUserSelect } from 'src/prisma/selects/user.select';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TASK_CREATED, TASK_DELETED, TASK_UPDATED } from './events/task.events';
 import { FindTasksQueryDto } from './dto/find-tasks.query';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { MailService } from 'src/mail/mail.service';
+import { generateTasksCsv } from './utils/csv';
+
 @Injectable()
 export class TasksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly mailService: MailService,
   ) { }
 
   async create(createTaskDto: CreateTaskDto, userId: number) {
@@ -229,6 +234,70 @@ export class TasksService {
     this.eventEmitter.emit(TASK_DELETED, { task, actorId: userId });
 
     return;
+  }
+
+  // @Cron('0 9 * * 5') // Every Friday at 9 AM
+  @Cron(CronExpression.EVERY_30_SECONDS)
+  async weeklyDoneTasksSummary() {
+    if (process.env.NODE_ENV === 'production') {
+      return;
+    }
+    console.log('Generating weekly done tasks summary email...');
+
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const tasks = await this.prisma.task.findMany({
+      where: {
+        status: 'done',
+        completedAt: {
+          gte: oneWeekAgo,
+        },
+      },
+      include: {
+        createdBy: {
+          select: safeUserSelect,
+        },
+        assignees: {
+          include: {
+            user: { select: safeUserSelect },
+          },
+        },
+      },
+      orderBy: {
+        completedAt: 'desc',
+      },
+    });
+
+    if (!tasks.length) return;
+
+    const normalizedTasks = tasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      priority: task.priority,
+      completedAt: task.completedAt?.toDateString(),
+      createdBy: task.createdBy.name,
+      assignees: task.assignees.map(a => a.user.name).join(', '),
+    }));
+
+    const csv = generateTasksCsv(normalizedTasks);
+
+    await this.mailService.sendTemplateMail({
+      to: process.env.ADMIN_EMAIL!,
+      subject: `Weekly Tasks Summary (${tasks.length} completed)`,
+      template: 'weekly-done-tasks',
+      context: {
+        total: normalizedTasks.length,
+        generatedAt: new Date().toDateString(),
+      },
+      attachments: [
+        {
+          filename: 'weekly-completed-tasks.csv',
+          content: csv,
+          contentType: 'text/csv',
+        }
+      ]
+    });
   }
 }
 
