@@ -42,4 +42,16 @@ export class MailService {
             attachments: params.attachments,
         });
     }
+
+    async sendResetPasswordEmail(to: string, resetUrl: string) {
+        return this.mailerService.sendMail({
+            to,
+            subject: 'Reset Your Password',
+            html: `
+                <h2>Reset Password</h2>
+                <p>Click this link to reset your password (valid for 15 minutes):</p>
+                <a href="${resetUrl}">${resetUrl}</a>
+            `,
+        });
+    }
 }

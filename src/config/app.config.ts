@@ -9,6 +9,6 @@ export default () => ({
         user: process.env.EMAIL_HOST_USER,
         pass: process.env.EMAIL_HOST_PASSWORD,
         secure: process.env.EMAIL_USE_TLS === 'true',
-        defaultFrom: process.env.EMAIL_DEFAULT_FROM,
+        defaultFrom: process.env.DEFAULT_FROM_EMAIL,
     }
 });

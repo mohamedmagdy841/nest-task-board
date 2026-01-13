@@ -25,6 +25,10 @@ model User {
   assignedTasks TaskAssignment[]
   comments Comment[] @relation("UserComments")
 
+  resetPasswordTokenHash String?
+  resetPasswordExpiresAt DateTime?
+
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

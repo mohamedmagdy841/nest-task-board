@@ -4,6 +4,8 @@ import { RegisterUserDto } from './dto/register.dto';
 import { LoginUserDto } from './dto/login.dto';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Throttle({ default: { limit: 3, ttl: 60000 } })
 @Controller('auth')
@@ -55,5 +57,17 @@ export class AuthController {
             sameSite: 'lax',
         });
         return { message: 'Logout successful' };
+    }
+
+    @HttpCode(HttpStatus.OK)
+    @Post('forgot-password')
+    async forgotPassword(@Body() dto: ForgotPasswordDto) {
+        return this.authService.forgotPassword(dto);
+    }
+
+    @HttpCode(HttpStatus.OK)
+    @Post('reset-password')
+    async resetPassword(@Body() dto: ResetPasswordDto) {
+        return this.authService.resetPassword(dto);
     }
 }

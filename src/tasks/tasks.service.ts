@@ -239,9 +239,6 @@ export class TasksService {
   // @Cron('0 9 * * 5') // Every Friday at 9 AM
   @Cron(CronExpression.EVERY_30_SECONDS)
   async weeklyDoneTasksSummary() {
-    if (process.env.NODE_ENV === 'production') {
-      return;
-    }
     console.log('Generating weekly done tasks summary email...');
 
     const oneWeekAgo = new Date();
