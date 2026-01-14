@@ -8,7 +8,7 @@ export const envValidationSchema = Joi.object({
     EMAIL_HOST: Joi.string().required(),
     EMAIL_PORT: Joi.number().required().default(587),
     EMAIL_USE_TLS: Joi.boolean().required(),
-    EMAIL_HOST_USER: Joi.string().required(),
-    EMAIL_HOST_PASSWORD: Joi.string().required(),
+    EMAIL_HOST_USER: Joi.string().optional(),
+    EMAIL_HOST_PASSWORD: Joi.string().optional(),
     DEFAULT_FROM_EMAIL: Joi.string().email().required(),
 });
