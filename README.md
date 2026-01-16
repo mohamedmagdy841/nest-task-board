@@ -44,19 +44,17 @@ The application is **containerized with Docker** and deployed on a **VPS**, runn
 
 ## Core Features
 
-* JWT Authentication.
-* Role-based authorization (Admin / User).
-* Task CRUD with strict permission rules.
-* Task assignments (many-to-many).
-* Task comments.
-* File uploads (images & PDFs).
-* Background job processing using BullMQ (Redis-backed).
 * Real-time updates using WebSockets (Socket.IO).
+* Weekly scheduled report (cron job) as a CSV attachment.
+* Deployed on VPS behind Nginx reverse proxy.
+* Background job processing using BullMQ (Redis-backed).
 * Redis adapter for scalable WebSocket communication.
 * Redis-backed rate limiting.
+* JWT Authentication.
+* Role-based authorization (Admin / User).
+* File uploads (images & PDFs).
 * Nodemailer integration for emails.
 * Fully Dockerized setup.
-* Deployed on VPS behind Nginx reverse proxy.
 
 ---
 
