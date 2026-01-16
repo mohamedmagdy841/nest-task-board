@@ -1,6 +1,6 @@
 # Real-Time Task Board
 
-Real-Time Task Board is a NestJS backend project that implements JWT authentication, role-based authorization, task management, and real-time updates via WebSockets, following clean, production-oriented backend architecture.
+Real-Time Task Board is a real-time task management backend built with NestJS and Socket.IO, featuring JWT authentication, role-based authorization, and live WebSocket updates, deployed on a Dockerized VPS behind an Nginx reverse proxy, with Redis powering WebSocket scalability, rate limiting, and BullMQ background jobs, including a weekly automated CSV email report for completed tasks.
 
 ---
 
