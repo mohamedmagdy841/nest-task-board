@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Res } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Post, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register.dto';
 import { LoginUserDto } from './dto/login.dto';
@@ -18,6 +18,10 @@ export class AuthController {
         @Body() registerUserDto: RegisterUserDto,
         @Res({ passthrough: true }) response: Response,
     ) {
+        if (process.env.NODE_ENV === 'production') {
+            throw new ForbiddenException('Registration is disabled');
+        }
+        
         const accessToken = await this.authService.register(registerUserDto);
 
         response.cookie('access_token', accessToken, {
